@@ -9,7 +9,8 @@
   "log_month": "2026-11",
   "generation_start_date": "2026-11-11",
   "codex_cli": "/ABSOLUTE/PATH/TO/codex",
-  "capture_allowlist": {"YOUR_CHAT_ID": "ชื่อแชตการเรียนที่อนุญาต"},
   "legacy_exception_date": null,
-  "manual_finalize_date": null
+  "manual_finalize_date": null,
+  "capture_mode": "all_accessible",
+  "source_day_max_bytes": 256000
 }

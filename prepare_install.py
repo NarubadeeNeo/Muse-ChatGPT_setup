@@ -24,7 +24,11 @@ def prepare(root,values):
         if values.get(key) is not None:dt.date.fromisoformat(values[key])
     cli=Path(values['codex_cli']).expanduser().resolve() if values.get('codex_cli') else None
     if cli is not None and (not cli.is_file() or not os.access(cli,os.X_OK)):raise ValueError('codex_cli must point to an installed executable, or be null for manual Handoffs')
-    allowed=values.get('capture_allowlist',{})
+    mode=values.get('capture_mode','allowlist')
+    if mode not in ('allowlist','all_accessible'):raise ValueError('Unsupported capture_mode')
+    allowed=values.get('capture_allowlist',{}) if mode=='allowlist' else {}
+    limit=values.get('source_day_max_bytes',256000 if mode=='all_accessible' else 128000)
+    if type(limit) is not int or not 128000<=limit<=2*1024*1024:raise ValueError('Invalid bounded source_day_max_bytes')
     if not isinstance(allowed,dict) or any(not isinstance(k,str) or not k or k.startswith('YOUR_') or not isinstance(v,str) or not v.strip() for k,v in allowed.items()):
         raise ValueError('Fill capture_allowlist or use {} for manual Session Summaries')
     # Never regenerate a live deployment or replace any existing journal/config.
@@ -39,7 +43,7 @@ def prepare(root,values):
     settings={'outbox':str(root/'outbox'),'uploader_config':str(private/'config.json'),'token_file':str(private/'handoff-token.json'),
               'log_dir':str(root/'logs'),'generation_state':str(private/'generation-state'),'generation_start_date':str(start),
               'model_runtime':str(runtime/'model-runtime'),'codex_cli':str(cli) if cli else '', 'capture_state':str(private/'capture-state'),
-              'capture_receipt':str(private/'capture-latest.json'),'capture_allowlist':allowed,
+              'capture_receipt':str(private/'capture-latest.json'),'capture_allowlist':allowed,'capture_mode':mode,'source_day_max_bytes':limit,
               'checkpoint_state':str(private/'checkpoint-state'),'checkpoint_file_id':None}
     def write_json(path,value):
         with open(path,'x') as f:json.dump(value,f,ensure_ascii=False,indent=2)

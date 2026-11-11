@@ -19,7 +19,7 @@ python verify_package.py
 ## องค์ประกอบ
 
 - uploader.py / scheduled_upload.py — ตรวจ schema v2, unique ID, SHA-256, duplicate/no-overwrite, upload และ read-back
-- capture_session.py / capture_batch.py — เก็บข้อความต้นทางที่ได้รับอนุญาต โดยต้องมีเครื่องมืออ่านแชตจริง
+- capture_session.py / capture_batch.py — ค้นทุกแชต ChatGPT ที่เข้าถึงได้ทั้ง active/archived ใหม่ทุกรอบ เก็บข้อความวันนี้/เมื่อวานโดยไม่ล็อกรายชื่อ ต้องมีเครื่องมืออ่านแชตจริง
 - daily_pipeline.py — ใช้หลักฐานจาก Session Summary สร้าง Handoff ผ่าน Codex CLI
 - check_muse.py / checkpoint_writer.py — ตรวจสถานะ และบันทึกหลักฐานโดยไม่อนุมัติ finalize
 - prepare_install.py / deployment_admin.py / manage_launchd.py — ตั้งค่าบัญชีและงานบนเครื่องผู้ติดตั้ง
@@ -35,8 +35,10 @@ Handoff ที่ daily_pipeline.py สร้างใช้ ID `chatgpt-<event_
 
 ## ขอบเขตและผลทดสอบ
 
-ทดสอบ local ผ่าน 120 รายการใน Python 3.13 รวม dry-run, create, duplicate และแตกชุดติดตั้งไปพาธที่มีช่องว่างด้วยค่าตั้งจำลอง ไม่มีการใช้บัญชีใหม่หรือรับรองรอบอัตโนมัติครบวงจร ดู TEST-RESULTS.txt และ PACKAGE-VERIFICATION.json
+ทดสอบ local ผ่าน 137 รายการใน Python 3.13 รวม dry-run, create, duplicate และแตกชุดติดตั้งไปพาธที่มีช่องว่างด้วยค่าตั้งจำลอง ไม่มีการใช้บัญชีใหม่หรือรับรองรอบอัตโนมัติครบวงจร ดู TEST-RESULTS.txt และ PACKAGE-VERIFICATION.json
 
 Repository นี้มีเฉพาะต้นฉบับสำหรับติดตั้งและข้อมูลตัวอย่าง ไม่รวม credentials/token, Drive IDs จริง, ข้อมูลแชตจริง, Daily Log/Memory หรือ runtime ของเครื่องเดิม ไฟล์เหล่านี้ต้องสร้างในเครื่องผู้ติดตั้งเองและอยู่ใน .gitignore
 
 Python อยู่บน Mac ไม่เพิ่ม Python service บน Muse VM การส่งข้อมูลกลับเข้าแต่ละแชต ChatGPT อัตโนมัติยังไม่รวมในชุดนี้
+
+โหมดเก็บต้นทางเริ่มต้นล่าสุด: `capture_mode: all_accessible` ไม่ต้องใส่รายชื่อแชตเอง แชตเก่าที่ไม่อัปเดตจะนับเฉพาะ metadata; ข้อความที่ถูกตัดและแชตที่อ่านไม่ได้ทำให้รายงาน partial ไม่ถือว่าประวัติทั้งบัญชีครบ หากต้องการจำกัดข้อมูลสำหรับบัญชีอื่นเลือก allowlist ได้ ดู CHATGPT_CAPTURE_PROMPT.md ก่อนอนุญาตส่งข้อมูลจากทุกหัวข้อเข้า Drive

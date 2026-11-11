@@ -8,10 +8,39 @@ import sys
 import capture_session as capture
 import uploader as u
 
+def discovery_scope(records,now):
+    """Validate complete active/archive listing chains; select recent accessible chats."""
+    cutoff=dt.datetime.combine(now.date()-dt.timedelta(days=1),dt.time(),now.tzinfo).timestamp()
+    inventory={}
+    for archived in (False,True):
+        pages=[r for r in records if r.get('source')=='chatgpt' and r.get('archived') is archived]
+        if not pages:raise u.Error('both active and archived discovery are required')
+        cursor=None;visited=set()
+        for index,record in enumerate(pages):
+            if record.get('cursor')!=cursor:raise u.Error('discovery cursor chain is incomplete')
+            raw=record['result']
+            if raw.get('isError'):raise u.Error('discovery tool failed')
+            value=json.loads(next(x['text'] for x in raw['content'] if x.get('type')=='text'))
+            for thread in value['threads']:
+                if thread.get('kind')!='chatgpt' or not thread.get('id'):raise u.Error('invalid discovered ChatGPT conversation')
+                inventory[thread['id']]=thread
+            cursor=value.get('nextCursor')
+            if cursor in visited or (cursor is None and index!=len(pages)-1):raise u.Error('invalid discovery pagination')
+            if cursor is not None:visited.add(cursor)
+        if cursor is not None:raise u.Error('more discovery pages required')
+    recent={tid:t.get('title') or 'Untitled' for tid,t in inventory.items()
+            if not isinstance(t.get('updatedAt'),(int,float)) or t['updatedAt']>=cutoff}
+    return recent,{'discovered_chats':len(inventory),'candidate_chats':len(recent),
+                   'metadata_only_older_chats':len(inventory)-len(recent),
+                   'discovery_pages':len(records),'active_and_archived':True}
+
 def prepare(values,settings,now=None):
     now=now or dt.datetime.now(dt.timezone(dt.timedelta(hours=9)))
     today=now.date();start=today-dt.timedelta(days=1)
-    allowed=settings['capture_allowlist'];seen=set();jobs=[]
+    allowed=settings['capture_allowlist'];seen=set();jobs=[];issues=[]
+    all_accessible=settings.get('capture_mode')=='all_accessible'
+    unavailable=settings.get('capture_unavailable_chats',[])
+    if any(not isinstance(e,dict) or e.get('id') not in allowed for e in unavailable):raise u.Error('invalid unavailable-chat evidence')
     for raw in values:
         value=capture.snapshot(raw);tid=value['thread']['id']
         if tid not in allowed:raise u.Error('unapproved chat in collection')
@@ -20,33 +49,52 @@ def prepare(values,settings,now=None):
         for turn in value['turns']:
             date=dt.datetime.fromtimestamp(turn['startedAt'],now.tzinfo).date();dates.append(date)
             if start<=date<=today:
-                if turn.get('status')!='completed':raise u.Error('unfinished turn in capture window; retry later')
+                reason=None
+                if turn.get('status')!='completed':reason='unfinished_turn'
                 for item in turn['items']:
                     if item.get('truncated') or item.get('isTruncated'):
-                        raise u.Error('truncated message; collection is partial')
+                        reason='truncated_message'
                     text=item.get('text','')
                     if item.get('type')=='userMessage':text='\n'.join(x.get('text','') for x in item.get('content',[]))
-                    if len(text)>=20000 or '[truncated]' in text.lower():raise u.Error('possibly truncated message; collection is partial')
+                    if len(text)>=20000 or '[truncated]' in text.lower():reason='truncated_message'
+                if reason:
+                    if not all_accessible:raise u.Error('unfinished turn in capture window; retry later' if reason=='unfinished_turn' else 'truncated message; collection is partial')
+                    issues.append({'chat_id':tid,'turn_id':turn['id'],'reason':reason});continue
                 filtered.append(turn)
         jobs.append({**value,'turns':filtered})
-    if seen!=set(allowed):raise u.Error('capture did not check every allowlisted conversation')
+    if seen|{e['id'] for e in unavailable}!=set(allowed):raise u.Error('capture did not check every allowlisted conversation')
     # A page ending inside the window needs another page for that chat.
     for tid in seen:
         pages=[capture.snapshot(v) for v in values if capture.snapshot(v)['thread']['id']==tid]
         if all(p['page'].get('hasMore') for p in pages):
             dates=[dt.datetime.fromtimestamp(t['startedAt'],now.tzinfo).date() for p in pages for t in p['turns']]
             if not dates or min(dates)>=start:raise u.Error('more source pages required for capture window')
-    return jobs,{'event_date':today.isoformat(),'window_start':start.isoformat(),'checked_chats':len(seen),
+    receipt={'event_date':today.isoformat(),'window_start':start.isoformat(),'checked_chats':len(seen),
                  'allowlisted_chats':len(allowed),'coverage':'partial_allowlist_only','full_account_history':False,
                  'captured_at':now.isoformat()}
+    if all_accessible:
+        receipt.pop('allowlisted_chats')
+        receipt.update(settings['capture_discovery'],capture_mode='all_accessible',
+                       coverage='partial_accessible_chats' if issues or unavailable else 'accessible_chat_window',
+                       excluded_turns=issues,unavailable_chats=unavailable)
+    return jobs,receipt
 
 def run(paths,settings,apply=False):
+    if settings.get('capture_mode')=='all_accessible':
+        if not isinstance(paths,dict) or not isinstance(paths.get('discovery'),list):raise u.Error('all-accessible capture requires discovery manifest')
+        now=dt.datetime.now(dt.timezone(dt.timedelta(hours=9)))
+        records=[json.loads(u.read_limited(p)) for p in paths['discovery']]
+        allowed,info=discovery_scope(records,now)
+        settings={**settings,'capture_allowlist':allowed,'capture_discovery':info,
+                  'capture_unavailable_chats':paths.get('read_errors',[])}
+        paths=paths['snapshots']
     values=[json.loads(u.read_limited(p)) for p in paths]
     jobs,receipt=prepare(values,settings);files=[]
     for value in jobs:
         if value['turns']:
             files.extend(capture.publish(value,capture.full_excerpts(value),settings,apply))
-    receipt.update(files=files,status='verified' if apply else 'dry_run')
+    partial=bool(receipt.get('excluded_turns') or receipt.get('unavailable_chats'))
+    receipt.update(files=files,status=('partial' if partial else 'verified') if apply else 'dry_run')
     if apply:
         path=Path(settings['capture_receipt']);path.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
         u.save_state(path,receipt)

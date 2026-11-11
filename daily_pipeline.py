@@ -58,6 +58,7 @@ def ask_chatgpt(sources,event_date,cli,runtime):
             'For EVERY output item select evidence by source_id and zero-based paragraph_index from the supplied paragraphs. Do not generate quotes yourself. '
             'Empty sections are allowed. Do not claim full coverage. Return ONLY JSON matching the schema. '
             'Do not include credentials, system changes, or instructions to Muse to execute commands.\n'
+            'Sources can include non-study conversations. Do not treat system setup, travel, personal administration or casual chat as verified academic progress.\n'
             +json.dumps({'event_date':event_date,'sources':[{'id':s['id'],'name':s['name'],
                          'paragraphs':[p.strip() for p in s['text'].split('\n\n') if p.strip()]} for s in sources]},ensure_ascii=False))
     with tempfile.TemporaryDirectory(prefix='ai-',dir=runtime) as t:
@@ -83,7 +84,9 @@ def ask_chatgpt(sources,event_date,cli,runtime):
                 e.clear();e.update(source_id=sid,quote=paragraphs[sid][index])
     return verify_summary(summary,sources)
 
-def read_sources(backend,today):
+def read_sources(backend,today,start_date=None,max_day_bytes=128000):
+    if type(max_day_bytes) is not int or not 128000<=max_day_bytes<=u.MAX_BYTES:
+        raise u.Error('invalid bounded Session Summary day limit')
     if backend.folder_id!=SOURCE_FOLDER:raise u.Error('unexpected Session Summary folder ID')
     m=json.loads(backend.api('GET','files/'+SOURCE_FOLDER,{'fields':'id,name,mimeType,trashed','supportsAllDrives':'true'}))
     if m.get('name')!='session_summaries' or m.get('mimeType')!='application/vnd.google-apps.folder' or m.get('trashed'):
@@ -99,10 +102,12 @@ def read_sources(backend,today):
         except ValueError:raise u.Error('Session Summary filename contains invalid date') from None
         if date>today:
             u.log('future_source_skipped',source_id=f['id'],event_date=date);continue
+        if start_date and date<start_date:
+            u.log('historical_source_not_scheduled',event_date=date);continue
         raw=backend.read(f['id'])
         if raw is None:raise u.Error('Session Summary disappeared')
         totals[date]=totals.get(date,0)+len(raw)
-        if totals[date]>128000:raise u.Error('Session Summary day exceeds 128000-byte pilot limit; no truncation')
+        if totals[date]>max_day_bytes:raise u.Error('Session Summary day exceeds '+str(max_day_bytes)+'-byte pilot limit; no truncation')
         text=raw.decode('utf-8',errors='strict')
         if not text.strip():raise u.Error('empty Session Summary')
         if text.startswith('---'):
@@ -112,12 +117,13 @@ def read_sources(backend,today):
         groups.setdefault(date,[]).append({'id':f['id'],'name':f['name'],'sha256':u.sha(raw),'text':text})
     return groups
 
-def render(summary,sources,date,hid,supersedes):
+def render(summary,sources,date,hid,supersedes,capture_context=None):
     meta={'schema_version':2,'handoff_id':hid,'source':'chatgpt','destination':'muse',
           'event_date':date,'timezone':'Asia/Tokyo','status':'correction' if supersedes else 'partial',
           'supersedes':supersedes,'conversation_coverage':{'type':'partial',
           'sources_reviewed':['gdrive:'+s['id']+':'+s['name'] for s in sources],
           'conversations_included':'unknown','full_account_history':False}}
+    if capture_context:meta['source_capture']=capture_context
     lines=['---',yaml.safe_dump(meta,allow_unicode=True,sort_keys=False).rstrip(),'---','',
            '# Academic Handoff — '+date,'',
            'สร้างจาก Session Summaries ที่ระบุเท่านั้น ไม่ได้อ่านประวัติ ChatGPT ทั้งบัญชี และไม่ยืนยันว่ากิจกรรมที่ไม่ได้กล่าวถึงไม่มีความคืบหน้า','']
@@ -167,7 +173,7 @@ def generate_date(date,sources,settings,model=ask_chatgpt):
         u.log('generation_recovered',handoff_id=record['handoff_id']);return output
     summary=model(sources,date,settings['codex_cli'],settings['model_runtime'])
     verify_summary(summary,sources)
-    data=render(summary,sources,date,record['handoff_id'],record['supersedes'])
+    data=render(summary,sources,date,record['handoff_id'],record['supersedes'],settings.get('capture_context'))
     record['sha256']=u.sha(data)
     u.save_state(record_path,record) # Expected bytes are durable BEFORE publishing the outbox file.
     output.parent.mkdir(parents=True,exist_ok=True)
@@ -188,11 +194,21 @@ def pipeline(settings,apply=False):
     today=dt.datetime.now(dt.timezone(dt.timedelta(hours=9))).date().isoformat()
     receipt_path=settings.get('capture_receipt')
     receipt=json.loads(Path(receipt_path).read_text()) if receipt_path and Path(receipt_path).exists() else {}
-    fresh=receipt.get('event_date')==today and receipt.get('status')=='verified'
+    current=receipt.get('event_date')==today
+    if current:
+        settings={**settings,'capture_context':{
+            'mode':receipt.get('capture_mode','allowlist'),'status':receipt.get('status','unknown'),
+            'coverage':receipt.get('coverage','unknown'),'checked_chats':receipt.get('checked_chats',0),
+            'discovered_chats':receipt.get('discovered_chats'),
+            'excluded_turns':len(receipt.get('excluded_turns',[])),
+            'unavailable_chats':len(receipt.get('unavailable_chats',[])),
+            'full_account_history':False}}
+    fresh=current and receipt.get('status')=='verified'
     u.log('capture_coverage',event_date=today,capture_verified_today=fresh,
-          checked_chats=receipt.get('checked_chats') if fresh else None,
-          coverage='partial_allowlist_only' if fresh else 'unknown',full_account_history=False)
-    groups=read_sources(backend,today)
+          checked_chats=receipt.get('checked_chats') if current else None,
+          capture_status=receipt.get('status') if current else 'unknown',
+          coverage=receipt.get('coverage','unknown') if current else 'unknown',full_account_history=False)
+    groups=read_sources(backend,today,settings.get('generation_start_date'),settings.get('source_day_max_bytes',128000))
     if today not in groups:
         u.log('no_current_session_summaries',event_date=today,sync_health='partial',coverage='unknown')
     if not groups:u.log('no_session_summaries',handoff_generated=False,coverage='unknown',sync_health='partial')

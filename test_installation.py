@@ -28,6 +28,15 @@ class InstallationTests(unittest.TestCase):
             v=plistlib.loads(f.read_bytes());self.assertEqual(v['WorkingDirectory'],str(self.root))
             self.assertEqual(v['ProgramArguments'][0],str(self.root/'.venv/bin/python'))
             self.assertFalse(v['RunAtLoad'])
+    def test_all_accessible_mode_needs_no_chat_ids(self):
+        self.values.update(capture_mode='all_accessible',capture_allowlist={'YOUR_CHAT_ID':'Ignored fixed list'})
+        prepare.prepare(self.root,self.values)
+        settings=json.loads((self.root/'.private/schedule-settings.json').read_text())
+        self.assertEqual(settings['capture_mode'],'all_accessible');self.assertEqual(settings['capture_allowlist'],{})
+        self.assertEqual(settings['source_day_max_bytes'],256000)
+    def test_unknown_capture_mode_is_rejected(self):
+        self.values['capture_mode']='anything'
+        with self.assertRaisesRegex(ValueError,'capture_mode'):prepare.prepare(self.root,self.values)
     def test_refuses_existing_installation(self):
         prepare.prepare(self.root,self.values);before=(self.root/'.private/config.json').read_bytes()
         with self.assertRaisesRegex(ValueError,'Existing installation'):prepare.prepare(self.root,self.values)

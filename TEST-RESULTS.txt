@@ -1,3 +1,21 @@
+test_explicit_larger_day_limit_is_bounded (test_all_chat_capture.DailyScopeTests.test_explicit_larger_day_limit_is_bounded) ... {"time": "2026-11-11T11:47:14.184667+00:00", "event": "historical_source_not_scheduled", "event_date": "2026-11-10"}
+{"time": "2026-11-11T11:47:14.184863+00:00", "event": "historical_source_not_scheduled", "event_date": "2026-11-10"}
+ok
+test_historical_day_is_skipped_before_size_limit (test_all_chat_capture.DailyScopeTests.test_historical_day_is_skipped_before_size_limit) ... {"time": "2026-11-11T11:47:14.184927+00:00", "event": "historical_source_not_scheduled", "event_date": "2026-11-10"}
+ok
+test_invalid_limit_cannot_disable_bounds (test_all_chat_capture.DailyScopeTests.test_invalid_limit_cannot_disable_bounds) ... ok
+test_session_collision_check_reads_only_matching_filenames (test_all_chat_capture.DailyScopeTests.test_session_collision_check_reads_only_matching_filenames) ... ok
+test_archived_recent_chat_is_included (test_all_chat_capture.DiscoveryTests.test_archived_recent_chat_is_included) ... ok
+test_empty_discovery_is_valid_without_fabricating_chats (test_all_chat_capture.DiscoveryTests.test_empty_discovery_is_valid_without_fabricating_chats) ... ok
+test_missing_archive_listing_rejected (test_all_chat_capture.DiscoveryTests.test_missing_archive_listing_rejected) ... ok
+test_missing_recent_chat_cannot_be_silently_omitted (test_all_chat_capture.DiscoveryTests.test_missing_recent_chat_cannot_be_silently_omitted) ... ok
+test_missing_timestamp_is_read_conservatively (test_all_chat_capture.DiscoveryTests.test_missing_timestamp_is_read_conservatively) ... ok
+test_new_chat_requires_no_stored_allowlist (test_all_chat_capture.DiscoveryTests.test_new_chat_requires_no_stored_allowlist) ... ok
+test_older_chat_is_counted_but_not_read_for_daily_window (test_all_chat_capture.DiscoveryTests.test_older_chat_is_counted_but_not_read_for_daily_window) ... ok
+test_tool_error_rejected (test_all_chat_capture.DiscoveryTests.test_tool_error_rejected) ... ok
+test_truncated_turn_does_not_hide_complete_turns (test_all_chat_capture.DiscoveryTests.test_truncated_turn_does_not_hide_complete_turns) ... ok
+test_unfinished_discovery_rejected (test_all_chat_capture.DiscoveryTests.test_unfinished_discovery_rejected) ... ok
+test_wrong_cursor_chain_rejected (test_all_chat_capture.DiscoveryTests.test_wrong_cursor_chain_rejected) ... ok
 test_changed_source_changes_identity (test_capture.CaptureTests.test_changed_source_changes_identity) ... ok
 test_deterministic_bytes_and_event_date_from_source (test_capture.CaptureTests.test_deterministic_bytes_and_event_date_from_source) ... ok
 test_duplicate_excerpt_rejected (test_capture.CaptureTests.test_duplicate_excerpt_rejected) ... ok
@@ -67,6 +85,7 @@ test_enable_only_after_inventory_verified (test_handoff.RealHandoffTests.test_en
 test_example_rejected_before_auth (test_handoff.RealHandoffTests.test_example_rejected_before_auth) ... ok
 test_inventory_must_exactly_match (test_handoff.RealHandoffTests.test_inventory_must_exactly_match) ... ok
 test_inventory_requires_content_visibility (test_handoff.RealHandoffTests.test_inventory_requires_content_visibility) ... ok
+test_all_accessible_mode_needs_no_chat_ids (test_installation.InstallationTests.test_all_accessible_mode_needs_no_chat_ids) ... ok
 test_bad_chat_allowlist_rejected (test_installation.InstallationTests.test_bad_chat_allowlist_rejected) ... ok
 test_changed_inventory_rejected (test_installation.InstallationTests.test_changed_inventory_rejected) ... ok
 test_empty_destination_requires_human_review_and_explicit_empty (test_installation.InstallationTests.test_empty_destination_requires_human_review_and_explicit_empty) ... ok
@@ -79,6 +98,7 @@ test_prepare_is_local_only_and_uploads_disabled (test_installation.InstallationT
 test_refuses_existing_installation (test_installation.InstallationTests.test_refuses_existing_installation) ... ok
 test_reused_roles_rejected (test_installation.InstallationTests.test_reused_roles_rejected) ... ok
 test_uninstall_preserves_private_config_and_journals (test_installation.InstallationTests.test_uninstall_preserves_private_config_and_journals) ... ok
+test_unknown_capture_mode_is_rejected (test_installation.InstallationTests.test_unknown_capture_mode_is_rejected) ... ok
 test_uploader_schedule_cannot_be_installed_before_enabling (test_installation.InstallationTests.test_uploader_schedule_cannot_be_installed_before_enabling) ... ok
 test_login_only_does_not_upload (test_oauth.OAuthTests.test_login_only_does_not_upload) ... ok
 test_oauth_exception_redacted (test_oauth.OAuthTests.test_oauth_exception_redacted) ... ok
@@ -120,7 +140,7 @@ test_valid_schema (test_uploader.Tests.test_valid_schema) ... ok
 test_verified_deleted_output_not_recreated (test_uploader.Tests.test_verified_deleted_output_not_recreated) ... ok
 
 ----------------------------------------------------------------------
-Ran 120 tests in 0.195s
+Ran 137 tests in 0.177s
 
 OK
 Another installation owns this label; do not overwrite

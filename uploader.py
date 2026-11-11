@@ -229,6 +229,8 @@ def inspect(backend, name, data, meta):
     for f in backend.files():
         if f.get('mimeType') == 'application/vnd.google-apps.folder':
             continue
+        if meta is None and f['name'] != name:
+            continue
         raw = backend.read(f['id'])
         if raw is None:
             raise Error('listed file disappeared; rerun inspection')
