@@ -12,5 +12,6 @@
   "legacy_exception_date": null,
   "manual_finalize_date": null,
   "capture_mode": "all_accessible",
-  "source_day_max_bytes": 256000
+  "source_day_max_bytes": 256000,
+  "capture_window_days": 1
 }

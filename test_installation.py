@@ -33,7 +33,11 @@ class InstallationTests(unittest.TestCase):
         prepare.prepare(self.root,self.values)
         settings=json.loads((self.root/'.private/schedule-settings.json').read_text())
         self.assertEqual(settings['capture_mode'],'all_accessible');self.assertEqual(settings['capture_allowlist'],{})
+        self.assertEqual(settings['capture_window_days'],1)
         self.assertEqual(settings['source_day_max_bytes'],256000)
+    def test_invalid_day_window_is_rejected(self):
+        self.values['capture_window_days']=0
+        with self.assertRaisesRegex(ValueError,'capture_window_days'):prepare.prepare(self.root,self.values)
     def test_unknown_capture_mode_is_rejected(self):
         self.values['capture_mode']='anything'
         with self.assertRaisesRegex(ValueError,'capture_mode'):prepare.prepare(self.root,self.values)

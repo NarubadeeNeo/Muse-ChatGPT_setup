@@ -26,6 +26,8 @@ def prepare(root,values):
     if cli is not None and (not cli.is_file() or not os.access(cli,os.X_OK)):raise ValueError('codex_cli must point to an installed executable, or be null for manual Handoffs')
     mode=values.get('capture_mode','allowlist')
     if mode not in ('allowlist','all_accessible'):raise ValueError('Unsupported capture_mode')
+    days=values.get('capture_window_days',1 if mode=='all_accessible' else 2)
+    if type(days) is not int or days not in (1,2):raise ValueError('capture_window_days must be 1 or 2')
     allowed=values.get('capture_allowlist',{}) if mode=='allowlist' else {}
     limit=values.get('source_day_max_bytes',256000 if mode=='all_accessible' else 128000)
     if type(limit) is not int or not 128000<=limit<=2*1024*1024:raise ValueError('Invalid bounded source_day_max_bytes')
@@ -43,7 +45,7 @@ def prepare(root,values):
     settings={'outbox':str(root/'outbox'),'uploader_config':str(private/'config.json'),'token_file':str(private/'handoff-token.json'),
               'log_dir':str(root/'logs'),'generation_state':str(private/'generation-state'),'generation_start_date':str(start),
               'model_runtime':str(runtime/'model-runtime'),'codex_cli':str(cli) if cli else '', 'capture_state':str(private/'capture-state'),
-              'capture_receipt':str(private/'capture-latest.json'),'capture_allowlist':allowed,'capture_mode':mode,'source_day_max_bytes':limit,
+              'capture_receipt':str(private/'capture-latest.json'),'capture_allowlist':allowed,'capture_mode':mode,'capture_window_days':days,'source_day_max_bytes':limit,
               'checkpoint_state':str(private/'checkpoint-state'),'checkpoint_file_id':None}
     def write_json(path,value):
         with open(path,'x') as f:json.dump(value,f,ensure_ascii=False,indent=2)

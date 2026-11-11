@@ -1,20 +1,28 @@
-test_explicit_larger_day_limit_is_bounded (test_all_chat_capture.DailyScopeTests.test_explicit_larger_day_limit_is_bounded) ... {"time": "2026-11-11T11:47:14.184667+00:00", "event": "historical_source_not_scheduled", "event_date": "2026-11-10"}
-{"time": "2026-11-11T11:47:14.184863+00:00", "event": "historical_source_not_scheduled", "event_date": "2026-11-10"}
+test_explicit_larger_day_limit_is_bounded (test_all_chat_capture.DailyScopeTests.test_explicit_larger_day_limit_is_bounded) ... {"time": "2026-11-11T12:15:27.178797+00:00", "event": "historical_source_not_scheduled", "event_date": "2026-11-10"}
+{"time": "2026-11-11T12:15:27.179004+00:00", "event": "historical_source_not_scheduled", "event_date": "2026-11-10"}
 ok
-test_historical_day_is_skipped_before_size_limit (test_all_chat_capture.DailyScopeTests.test_historical_day_is_skipped_before_size_limit) ... {"time": "2026-11-11T11:47:14.184927+00:00", "event": "historical_source_not_scheduled", "event_date": "2026-11-10"}
+test_historical_day_is_skipped_before_size_limit (test_all_chat_capture.DailyScopeTests.test_historical_day_is_skipped_before_size_limit) ... {"time": "2026-11-11T12:15:27.179069+00:00", "event": "historical_source_not_scheduled", "event_date": "2026-11-10"}
 ok
 test_invalid_limit_cannot_disable_bounds (test_all_chat_capture.DailyScopeTests.test_invalid_limit_cannot_disable_bounds) ... ok
 test_session_collision_check_reads_only_matching_filenames (test_all_chat_capture.DailyScopeTests.test_session_collision_check_reads_only_matching_filenames) ... ok
 test_archived_recent_chat_is_included (test_all_chat_capture.DiscoveryTests.test_archived_recent_chat_is_included) ... ok
+test_cutoff_at_jst_midnight_is_inclusive (test_all_chat_capture.DiscoveryTests.test_cutoff_at_jst_midnight_is_inclusive) ... ok
+test_daily_cutoff_allows_stopping_before_old_pages (test_all_chat_capture.DiscoveryTests.test_daily_cutoff_allows_stopping_before_old_pages) ... ok
 test_empty_discovery_is_valid_without_fabricating_chats (test_all_chat_capture.DiscoveryTests.test_empty_discovery_is_valid_without_fabricating_chats) ... ok
+test_invalid_day_window_cannot_expand_history (test_all_chat_capture.DiscoveryTests.test_invalid_day_window_cannot_expand_history) ... ok
+test_message_pagination_can_stop_at_yesterday (test_all_chat_capture.DiscoveryTests.test_message_pagination_can_stop_at_yesterday) ... ok
 test_missing_archive_listing_rejected (test_all_chat_capture.DiscoveryTests.test_missing_archive_listing_rejected) ... ok
 test_missing_recent_chat_cannot_be_silently_omitted (test_all_chat_capture.DiscoveryTests.test_missing_recent_chat_cannot_be_silently_omitted) ... ok
 test_missing_timestamp_is_read_conservatively (test_all_chat_capture.DiscoveryTests.test_missing_timestamp_is_read_conservatively) ... ok
 test_new_chat_requires_no_stored_allowlist (test_all_chat_capture.DiscoveryTests.test_new_chat_requires_no_stored_allowlist) ... ok
 test_older_chat_is_counted_but_not_read_for_daily_window (test_all_chat_capture.DiscoveryTests.test_older_chat_is_counted_but_not_read_for_daily_window) ... ok
+test_today_capture_filters_yesterday_even_in_active_chat (test_all_chat_capture.DiscoveryTests.test_today_capture_filters_yesterday_even_in_active_chat) ... ok
 test_tool_error_rejected (test_all_chat_capture.DiscoveryTests.test_tool_error_rejected) ... ok
 test_truncated_turn_does_not_hide_complete_turns (test_all_chat_capture.DiscoveryTests.test_truncated_turn_does_not_hide_complete_turns) ... ok
+test_two_day_window_requires_explicit_choice (test_all_chat_capture.DiscoveryTests.test_two_day_window_requires_explicit_choice) ... ok
 test_unfinished_discovery_rejected (test_all_chat_capture.DiscoveryTests.test_unfinished_discovery_rejected) ... ok
+test_unknown_timestamp_prevents_early_stop (test_all_chat_capture.DiscoveryTests.test_unknown_timestamp_prevents_early_stop) ... ok
+test_unsorted_pages_cannot_claim_daily_cutoff (test_all_chat_capture.DiscoveryTests.test_unsorted_pages_cannot_claim_daily_cutoff) ... ok
 test_wrong_cursor_chain_rejected (test_all_chat_capture.DiscoveryTests.test_wrong_cursor_chain_rejected) ... ok
 test_changed_source_changes_identity (test_capture.CaptureTests.test_changed_source_changes_identity) ... ok
 test_deterministic_bytes_and_event_date_from_source (test_capture.CaptureTests.test_deterministic_bytes_and_event_date_from_source) ... ok
@@ -90,6 +98,7 @@ test_bad_chat_allowlist_rejected (test_installation.InstallationTests.test_bad_c
 test_changed_inventory_rejected (test_installation.InstallationTests.test_changed_inventory_rejected) ... ok
 test_empty_destination_requires_human_review_and_explicit_empty (test_installation.InstallationTests.test_empty_destination_requires_human_review_and_explicit_empty) ... ok
 test_foreign_launchd_job_is_not_overwritten_or_unloaded (test_installation.InstallationTests.test_foreign_launchd_job_is_not_overwritten_or_unloaded) ... ok
+test_invalid_day_window_is_rejected (test_installation.InstallationTests.test_invalid_day_window_is_rejected) ... ok
 test_manual_mode_does_not_schedule_ai_runtime (test_installation.InstallationTests.test_manual_mode_does_not_schedule_ai_runtime) ... ok
 test_month_mismatch_rejected (test_installation.InstallationTests.test_month_mismatch_rejected) ... ok
 test_observer_schedule_requires_verified_owned_journal (test_installation.InstallationTests.test_observer_schedule_requires_verified_owned_journal) ... ok
@@ -140,7 +149,7 @@ test_valid_schema (test_uploader.Tests.test_valid_schema) ... ok
 test_verified_deleted_output_not_recreated (test_uploader.Tests.test_verified_deleted_output_not_recreated) ... ok
 
 ----------------------------------------------------------------------
-Ran 137 tests in 0.177s
+Ran 146 tests in 0.165s
 
 OK
 Another installation owns this label; do not overwrite

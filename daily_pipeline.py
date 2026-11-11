@@ -208,7 +208,8 @@ def pipeline(settings,apply=False):
           checked_chats=receipt.get('checked_chats') if current else None,
           capture_status=receipt.get('status') if current else 'unknown',
           coverage=receipt.get('coverage','unknown') if current else 'unknown',full_account_history=False)
-    groups=read_sources(backend,today,settings.get('generation_start_date'),settings.get('source_day_max_bytes',128000))
+    source_start=max(settings.get('generation_start_date','0001-01-01'),today if settings.get('capture_window_days')==1 else '0001-01-01')
+    groups=read_sources(backend,today,source_start,settings.get('source_day_max_bytes',128000))
     if today not in groups:
         u.log('no_current_session_summaries',event_date=today,sync_health='partial',coverage='unknown')
     if not groups:u.log('no_session_summaries',handoff_generated=False,coverage='unknown',sync_health='partial')

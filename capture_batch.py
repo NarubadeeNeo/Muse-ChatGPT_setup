@@ -8,14 +8,18 @@ import sys
 import capture_session as capture
 import uploader as u
 
-def discovery_scope(records,now):
-    """Validate complete active/archive listing chains; select recent accessible chats."""
-    cutoff=dt.datetime.combine(now.date()-dt.timedelta(days=1),dt.time(),now.tzinfo).timestamp()
+def window_start(now,days):
+    if type(days) is not int or days not in (1,2):raise u.Error('capture_window_days must be 1 or 2')
+    return now.date()-dt.timedelta(days=days-1)
+
+def discovery_scope(records,now,days=1):
+    """Validate newest-first pages; stop when a page crosses the requested JST day."""
+    cutoff=dt.datetime.combine(window_start(now,days),dt.time(),now.tzinfo).timestamp()
     inventory={}
     for archived in (False,True):
         pages=[r for r in records if r.get('source')=='chatgpt' and r.get('archived') is archived]
         if not pages:raise u.Error('both active and archived discovery are required')
-        cursor=None;visited=set()
+        cursor=None;visited=set();previous=None;ordered=True;older_seen=False
         for index,record in enumerate(pages):
             if record.get('cursor')!=cursor:raise u.Error('discovery cursor chain is incomplete')
             raw=record['result']
@@ -24,19 +28,26 @@ def discovery_scope(records,now):
             for thread in value['threads']:
                 if thread.get('kind')!='chatgpt' or not thread.get('id'):raise u.Error('invalid discovered ChatGPT conversation')
                 inventory[thread['id']]=thread
+                timestamp=thread.get('updatedAt')
+                if type(timestamp) not in (int,float):ordered=False
+                else:
+                    if previous is not None and timestamp>previous:ordered=False
+                    previous=timestamp
+                    if timestamp<cutoff:older_seen=True
             cursor=value.get('nextCursor')
             if cursor in visited or (cursor is None and index!=len(pages)-1):raise u.Error('invalid discovery pagination')
             if cursor is not None:visited.add(cursor)
-        if cursor is not None:raise u.Error('more discovery pages required')
+        if cursor is not None and not (ordered and older_seen):raise u.Error('more discovery pages required; daily cutoff not verified')
     recent={tid:t.get('title') or 'Untitled' for tid,t in inventory.items()
             if not isinstance(t.get('updatedAt'),(int,float)) or t['updatedAt']>=cutoff}
     return recent,{'discovered_chats':len(inventory),'candidate_chats':len(recent),
                    'metadata_only_older_chats':len(inventory)-len(recent),
-                   'discovery_pages':len(records),'active_and_archived':True}
+                   'discovery_pages':len(records),'active_and_archived':True,
+                   'discovery_scope':'date_window_only','capture_window_days':days}
 
 def prepare(values,settings,now=None):
     now=now or dt.datetime.now(dt.timezone(dt.timedelta(hours=9)))
-    today=now.date();start=today-dt.timedelta(days=1)
+    today=now.date();start=window_start(now,settings.get('capture_window_days',1 if settings.get('capture_mode')=='all_accessible' else 2))
     allowed=settings['capture_allowlist'];seen=set();jobs=[];issues=[]
     all_accessible=settings.get('capture_mode')=='all_accessible'
     unavailable=settings.get('capture_unavailable_chats',[])
@@ -84,7 +95,7 @@ def run(paths,settings,apply=False):
         if not isinstance(paths,dict) or not isinstance(paths.get('discovery'),list):raise u.Error('all-accessible capture requires discovery manifest')
         now=dt.datetime.now(dt.timezone(dt.timedelta(hours=9)))
         records=[json.loads(u.read_limited(p)) for p in paths['discovery']]
-        allowed,info=discovery_scope(records,now)
+        allowed,info=discovery_scope(records,now,settings.get('capture_window_days',1))
         settings={**settings,'capture_allowlist':allowed,'capture_discovery':info,
                   'capture_unavailable_chats':paths.get('read_errors',[])}
         paths=paths['snapshots']
