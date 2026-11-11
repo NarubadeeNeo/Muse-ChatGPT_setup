@@ -1,0 +1,66 @@
+{
+  "registry": {
+    "processed_handoffs": [
+      {
+        "handoff_id": "chatgpt-2026-11-11-test-one",
+        "sha256_muse_computed": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ]
+  },
+  "handoffs": [
+    {
+      "meta": {
+        "event_date": "2026-11-11",
+        "handoff_id": "chatgpt-2026-11-11-test-one"
+      },
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "schema_v2_valid": true
+    }
+  ],
+  "logs": [
+    {
+      "meta": {
+        "event_date": "2026-11-11",
+        "log_id": "daily-2026-11-11",
+        "revision": 1,
+        "status": "draft",
+        "source_handoffs": [
+          "chatgpt-2026-11-11-test-one"
+        ]
+      },
+      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  ],
+  "sync_status": {
+    "date": "2026-11-11",
+    "conflicts": 0,
+    "sync_health": "partial"
+  },
+  "checkpoints": {
+    "checkpoints": [
+      {
+        "run_id": "sync-2026-11-11-2130-001",
+        "event_date": "2026-11-11",
+        "handoff_id": "chatgpt-2026-11-11-test-one",
+        "steps": {
+          "input_validation": "completed",
+          "daily_log": "completed"
+        },
+        "last_attempt_at": "2026-11-11T21:33:00+09:00",
+        "outputs": {
+          "daily_log": {
+            "event_date": "2026-11-11",
+            "log_id": "daily-2026-11-11",
+            "revision": 1,
+            "status": "draft",
+            "source_handoffs": [
+              "chatgpt-2026-11-11-test-one"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        }
+      }
+    ]
+  },
+  "fixture_notice": "LOCAL TEST FIXTURE: synthetic IDs and digests; never upload to Muse"
+}

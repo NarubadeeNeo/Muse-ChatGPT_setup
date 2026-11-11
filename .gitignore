@@ -1,0 +1,27 @@
+.venv/
+.private/
+.runtime/
+deployment.json
+deployment.user.json
+credentials.json
+*token*.json
+outbox/
+logs/
+capture/
+sandbox/
+__pycache__/
+*.pyc
+
+# Local account/runtime data
+.DS_Store
+work/
+outputs/
+.env
+.env.*
+*.pem
+*.key
+client_secret*.json
+credentials*.json
+*token*.json
+*.log
+.pytest_cache/

@@ -1,0 +1,15 @@
+{
+  "handoff_folder_id": "YOUR_HANDOFF_FOLDER_ID",
+  "session_folder_id": "YOUR_SESSION_SUMMARIES_FOLDER_ID",
+  "system_folder_id": "YOUR_SYSTEM_FOLDER_ID",
+  "sync_status_file_id": "YOUR_SYNC_STATUS_FILE_ID",
+  "registry_file_id": "YOUR_PROCESSED_HANDOFFS_FILE_ID",
+  "known_log_file_id": "YOUR_EXISTING_DAILY_LOG_FILE_ID",
+  "backup_folder_id": "YOUR_REVISION_BACKUPS_FOLDER_ID",
+  "log_month": "2026-11",
+  "generation_start_date": "2026-11-11",
+  "codex_cli": "/ABSOLUTE/PATH/TO/codex",
+  "capture_allowlist": {"YOUR_CHAT_ID": "ชื่อแชตการเรียนที่อนุญาต"},
+  "legacy_exception_date": null,
+  "manual_finalize_date": null
+}

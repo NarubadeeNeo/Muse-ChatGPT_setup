@@ -1,0 +1,11 @@
+{
+  "handoff_folder_id": "UNCONFIGURED_HANDOFF_FOLDER_ID",
+  "connectivity_folder_id": "",
+  "connectivity_folder_name": "muse-uploader-connectivity-tests",
+  "allow_handoff_upload": false,
+  "exclusive_writer_confirmed": false,
+  "full_folder_visibility_confirmed": false,
+  "token_env": "MUSE_DRIVE_ACCESS_TOKEN",
+  "local_store": "sandbox/store",
+  "state_dir": "sandbox/state"
+}

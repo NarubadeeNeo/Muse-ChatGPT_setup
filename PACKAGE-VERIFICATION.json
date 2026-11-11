@@ -1,0 +1,23 @@
+{
+  "release": "2026-11-11",
+  "kind": "configurable installation template",
+  "unit_tests": 120,
+  "dependencies_environment": "Existing Python 3.13 environment with requirements installed; not a new-account cloud test",
+  "manual_html_chapters": 16,
+  "credentials_or_private_runtime_included": false,
+  "not_claimed": [
+    "Google OAuth/Drive permissions of a new account",
+    "Muse scheduler capabilities in every account",
+    "ChatGPT source-reading tool availability in every account",
+    "Sending messages into arbitrary ChatGPT chats",
+    "Full unattended end-to-end operation"
+  ],
+  "zip_extraction_verified": true,
+  "relocated_path_with_spaces_verified": true,
+  "local_dry_create_duplicate_verified": true,
+  "configured_dummy_ids_other_month_tests": 120,
+  "configured_month_test": "2027-02; synthetic IDs; executable stand-in; no live account access",
+  "launchd_loaded_during_package_tests": false,
+  "drive_writes_during_package_tests": 0,
+  "manifest_verification": "passed before and after dummy local configuration"
+}
